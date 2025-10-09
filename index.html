@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    body {
+      background: #f5f7fb;
+      color: #1f2937;
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .dashboard {
+      width: min(1200px, 100%);
+      display: grid;
+      gap: 24px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: clamp(1.5rem, 2.5vw, 2rem);
+      font-weight: 700;
+    }
+
+    .pill {
+      background: #1f6feb;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+    }
+
+    .card-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(31, 47, 70, 0.08);
+      display: grid;
+      gap: 8px;
+    }
+
+    .card small {
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #6b7280;
+      font-weight: 600;
+    }
+
+    .card strong {
+      font-size: 1.5rem;
+    }
+
+    .card span {
+      font-size: 0.875rem;
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .card span.negative {
+      color: #dc2626;
+    }
+
+    .content-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .panel {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(31, 47, 70, 0.08);
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel h2 {
+      font-size: 1.125rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chart {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bars {
+      display: grid;
+      gap: 8px;
+    }
+
+    .bar {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      font-size: 0.875rem;
+      color: #4b5563;
+    }
+
+    .bar-track {
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      height: 8px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2563eb, #38bdf8);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px 0;
+    }
+
+    tr + tr {
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .status {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status.complete {
+      background: rgba(34, 197, 94, 0.12);
+      color: #15803d;
+    }
+
+    .status.progress {
+      background: rgba(59, 130, 246, 0.12);
+      color: #1d4ed8;
+    }
+
+    .status.blocked {
+      background: rgba(239, 68, 68, 0.12);
+      color: #b91c1c;
+    }
+
+    .activity-list {
+      display: grid;
+      gap: 14px;
+      font-size: 0.9rem;
+    }
+
+    .activity-item {
+      display: grid;
+      gap: 4px;
+    }
+
+    .activity-item span {
+      color: #6b7280;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px;
+      }
+
+      header {
+        justify-content: center;
+      }
+
+      .dashboard {
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="dashboard">
+    <header>
+      <div>
+        <h1>Product Overview</h1>
+        <p style="color: #6b7280; font-size: 0.95rem; margin-top: 4px;">
+          Track performance at a glance.
+        </p>
+      </div>
+      <div class="pill" id="current-date"></div>
+    </header>
+
+    <section class="card-grid" id="metric-cards"></section>
+
+    <section class="content-grid">
+      <article class="panel">
+        <h2>Weekly Signups<span id="total-signups"></span></h2>
+        <div class="chart">
+          <div class="bars" id="bar-chart"></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Team Tasks</h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40%;">Task</th>
+              <th>Owner</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="task-table"></tbody>
+        </table>
+      </article>
+
+      <article class="panel">
+        <h2>Latest Activity</h2>
+        <div class="activity-list" id="activity-feed"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const metrics = [
+      { label: "Total Revenue", value: "$48.2K", trend: "+12.4%" },
+      { label: "Active Users", value: "8,421", trend: "+3.1%" },
+      { label: "Conversion Rate", value: "4.8%", trend: "+0.6%" },
+      { label: "Support Tickets", value: "34", trend: "-8.2%" },
+    ];
+
+    const weeklySignups = [
+      { day: "Mon", value: 42 },
+      { day: "Tue", value: 58 },
+      { day: "Wed", value: 64 },
+      { day: "Thu", value: 51 },
+      { day: "Fri", value: 76 },
+      { day: "Sat", value: 35 },
+      { day: "Sun", value: 28 },
+    ];
+
+    const tasks = [
+      { name: "Plan marketing sprint", owner: "Julia", status: "In Progress" },
+      { name: "Refresh landing page", owner: "Omar", status: "In Progress" },
+      { name: "QA mobile app", owner: "Sophia", status: "Completed" },
+      { name: "Prepare Q4 roadmap", owner: "Devon", status: "Blocked" },
+    ];
+
+    const activities = [
+      { title: "Invoice #1042 sent", time: "5 minutes ago" },
+      { title: "New comment on Design System", time: "18 minutes ago" },
+      { title: "Customer feedback imported", time: "43 minutes ago" },
+      { title: "Weekly summary emailed", time: "1 hour ago" },
+    ];
+
+    const metricContainer = document.getElementById("metric-cards");
+    metrics.forEach(({ label, value, trend }) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <small>${label}</small>
+        <strong>${value}</strong>
+        <span class="${trend.startsWith("-") ? "negative" : ""}">${trend}</span>
+      `;
+      metricContainer.append(card);
+    });
+
+    const barChart = document.getElementById("bar-chart");
+    const maxSignup = Math.max(...weeklySignups.map((item) => item.value));
+    weeklySignups.forEach(({ day, value }) => {
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      bar.innerHTML = `
+        <span>${day}</span>
+        <div class="bar-track"><div class="bar-fill" style="width: ${(value / maxSignup) * 100}%;"></div></div>
+        <span>${value}</span>
+      `;
+      barChart.append(bar);
+    });
+
+    document.getElementById("total-signups").textContent = `${weeklySignups.reduce((sum, { value }) => sum + value, 0)} total`;
+
+    const taskTable = document.getElementById("task-table");
+    tasks.forEach(({ name, owner, status }) => {
+      const row = document.createElement("tr");
+      const normalized = status.toLowerCase();
+      const cssClass =
+        normalized.includes("complete")
+          ? "complete"
+          : normalized.includes("progress")
+          ? "progress"
+          : "blocked";
+
+      row.innerHTML = `
+        <td>${name}</td>
+        <td>${owner}</td>
+        <td><span class="status ${cssClass}">${status}</span></td>
+      `;
+      taskTable.append(row);
+    });
+
+    const activityFeed = document.getElementById("activity-feed");
+    activities.forEach(({ title, time }) => {
+      const item = document.createElement("div");
+      item.className = "activity-item";
+      item.innerHTML = `
+        <strong>${title}</strong>
+        <span>${time}</span>
+      `;
+      activityFeed.append(item);
+    });
+
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    });
+    document.getElementById("current-date").textContent = formattedDate;
+  </script>
+</body>
+</html>
