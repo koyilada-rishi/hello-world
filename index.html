@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    body {
+      background: #f5f7fb;
+      color: #1f2937;
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .dashboard {
+      width: min(1200px, 100%);
+      display: grid;
+      gap: 24px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    header h1 {
+      font-size: clamp(1.5rem, 2.5vw, 2rem);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .pill {
+      background: #1f6feb;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+
+    .period-toggle {
+      display: inline-flex;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 999px;
+      gap: 4px;
+    }
+
+    .period-toggle button {
+      border: 0;
+      background: transparent;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .period-toggle button.active {
+      background: white;
+      color: #1f2937;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2);
+    }
+
+    .card-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(31, 47, 70, 0.08);
+      display: grid;
+      gap: 8px;
+    }
+
+    .card small {
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #6b7280;
+      font-weight: 600;
+    }
+
+    .card strong {
+      font-size: 1.5rem;
+    }
+
+    .card span {
+      font-size: 0.875rem;
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .card span.negative {
+      color: #dc2626;
+    }
+
+    .content-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .panel {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(31, 47, 70, 0.08);
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel h2 {
+      font-size: 1.125rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chart {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bars {
+      display: grid;
+      gap: 8px;
+    }
+
+    .bar {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      font-size: 0.875rem;
+      color: #4b5563;
+    }
+
+    .bar-track {
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      height: 8px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2563eb, #38bdf8);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px 0;
+    }
+
+    .task-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    form.add-task {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      width: 100%;
+      align-items: center;
+    }
+
+    form.add-task input,
+    form.add-task select {
+      flex: 1 1 180px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.85rem;
+    }
+
+    form.add-task button,
+    button.clear-completed {
+      border: 0;
+      background: #2563eb;
+      color: white;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: filter 0.2s ease;
+      white-space: nowrap;
+    }
+
+    form.add-task button:hover,
+    button.clear-completed:hover,
+    .period-toggle button:hover {
+      filter: brightness(0.95);
+    }
+
+    button.clear-completed {
+      background: #0d9488;
+    }
+
+    .status-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .task-select {
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      background: white;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      padding: 16px;
+      text-align: center;
+      color: #6b7280;
+      background: #f8fafc;
+      border-radius: 12px;
+      font-size: 0.9rem;
+    }
+
+    tr + tr {
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .status {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status.complete {
+      background: rgba(34, 197, 94, 0.12);
+      color: #15803d;
+    }
+
+    .status.progress {
+      background: rgba(59, 130, 246, 0.12);
+      color: #1d4ed8;
+    }
+
+    .status.blocked {
+      background: rgba(239, 68, 68, 0.12);
+      color: #b91c1c;
+    }
+
+    .activity-list {
+      display: grid;
+      gap: 14px;
+      font-size: 0.9rem;
+    }
+
+    .activity-item {
+      display: grid;
+      gap: 4px;
+    }
+
+    .activity-item span {
+      color: #6b7280;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px;
+      }
+
+      .dashboard {
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="dashboard">
+    <header>
+      <div>
+        <h1>Product Overview</h1>
+        <p style="color: #6b7280; font-size: 0.95rem; margin-top: 4px;">
+          Track performance, manage tasks, and review activity in real time.
+        </p>
+      </div>
+      <div class="controls">
+        <div class="period-toggle" role="group" aria-label="Select reporting period">
+          <button type="button" data-period="week" class="active">Week</button>
+          <button type="button" data-period="month">Month</button>
+          <button type="button" data-period="quarter">Quarter</button>
+        </div>
+        <div class="pill" id="current-date"></div>
+      </div>
+    </header>
+
+    <section class="card-grid" id="metric-cards"></section>
+
+    <section class="content-grid">
+      <article class="panel">
+        <h2>Weekly Signups<span id="total-signups"></span></h2>
+        <div class="chart">
+          <div class="bars" id="bar-chart"></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Team Tasks</h2>
+        <div class="task-actions">
+          <form class="add-task" id="add-task-form">
+            <input type="text" name="task" placeholder="Task description" required />
+            <input type="text" name="owner" placeholder="Owner" required />
+            <select name="status" aria-label="Task status">
+              <option value="In Progress">In Progress</option>
+              <option value="Not Started">Not Started</option>
+              <option value="Blocked">Blocked</option>
+              <option value="Completed">Completed</option>
+            </select>
+            <button type="submit">Add Task</button>
+          </form>
+          <button class="clear-completed" type="button" id="clear-completed">
+            Clear Completed
+          </button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40%;">Task</th>
+              <th>Owner</th>
+              <th>Status</th>
+              <th style="width: 1%;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="task-table"></tbody>
+        </table>
+      </article>
+
+      <article class="panel">
+        <h2>Latest Activity</h2>
+        <div class="activity-list" id="activity-feed"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const datasets = {
+      week: {
+        metrics: [
+          { label: "Total Revenue", value: 48200, format: "currency", delta: 12.4 },
+          { label: "Active Users", value: 8421, format: "number", delta: 3.1 },
+          { label: "Conversion Rate", value: 0.048, format: "percent", delta: 0.6 },
+          { label: "Support Tickets", value: 34, format: "number", delta: -8.2 },
+        ],
+        signups: [
+          { label: "Mon", value: 42 },
+          { label: "Tue", value: 58 },
+          { label: "Wed", value: 64 },
+          { label: "Thu", value: 51 },
+          { label: "Fri", value: 76 },
+          { label: "Sat", value: 35 },
+          { label: "Sun", value: 28 },
+        ],
+      },
+      month: {
+        metrics: [
+          { label: "Total Revenue", value: 212400, format: "currency", delta: 8.1 },
+          { label: "Active Users", value: 32140, format: "number", delta: 4.7 },
+          { label: "Conversion Rate", value: 0.052, format: "percent", delta: 1.1 },
+          { label: "Support Tickets", value: 148, format: "number", delta: -5.3 },
+        ],
+        signups: [
+          { label: "Week 1", value: 312 },
+          { label: "Week 2", value: 358 },
+          { label: "Week 3", value: 402 },
+          { label: "Week 4", value: 389 },
+        ],
+      },
+      quarter: {
+        metrics: [
+          { label: "Total Revenue", value: 678400, format: "currency", delta: 15.6 },
+          { label: "Active Users", value: 94210, format: "number", delta: 9.2 },
+          { label: "Conversion Rate", value: 0.061, format: "percent", delta: 1.9 },
+          { label: "Support Tickets", value: 412, format: "number", delta: -11.8 },
+        ],
+        signups: [
+          { label: "Jan", value: 1180 },
+          { label: "Feb", value: 1246 },
+          { label: "Mar", value: 1394 },
+        ],
+      },
+    };
+
+    const activityFeed = document.getElementById("activity-feed");
+    const metricContainer = document.getElementById("metric-cards");
+    const barChart = document.getElementById("bar-chart");
+    const totalSignupsEl = document.getElementById("total-signups");
+    const periodButtons = Array.from(document.querySelectorAll(".period-toggle button"));
+    const taskTable = document.getElementById("task-table");
+
+    function createId() {
+      if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+      }
+      return `id-${Math.random().toString(16).slice(2)}-${Date.now()}`;
+    }
+
+    const activities = [
+      { title: "Invoice #1042 sent", time: "5 minutes ago" },
+      { title: "New comment on design system", time: "18 minutes ago" },
+      { title: "Customer feedback imported", time: "43 minutes ago" },
+      { title: "Weekly summary emailed", time: "1 hour ago" },
+    ];
+
+    const tasks = [
+      { id: createId(), name: "Plan marketing sprint", owner: "Julia", status: "In Progress" },
+      { id: createId(), name: "Refresh landing page", owner: "Omar", status: "In Progress" },
+      { id: createId(), name: "QA mobile app", owner: "Sophia", status: "Completed" },
+      { id: createId(), name: "Prepare Q4 roadmap", owner: "Devon", status: "Blocked" },
+    ];
+
+    const statusStyles = {
+      "Not Started": "",
+      "In Progress": "progress",
+      Blocked: "blocked",
+      Completed: "complete",
+    };
+
+    function formatValue({ value, format }) {
+      const numberFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+      switch (format) {
+        case "currency":
+          return new Intl.NumberFormat(undefined, {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 0,
+          }).format(value);
+        case "percent":
+          return `${(value * 100).toFixed(1)}%`;
+        default:
+          return numberFormatter.format(value);
+      }
+    }
+
+    function renderMetrics(period) {
+      metricContainer.innerHTML = "";
+      datasets[period].metrics.forEach(({ label, value, format, delta }) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        const formattedDelta = `${delta > 0 ? "+" : ""}${delta.toFixed(1)}%`;
+        card.innerHTML = `
+          <small>${label}</small>
+          <strong>${formatValue({ value, format })}</strong>
+          <span class="${delta < 0 ? "negative" : ""}">${formattedDelta}</span>
+        `;
+        metricContainer.append(card);
+      });
+    }
+
+    function renderChart(period) {
+      barChart.innerHTML = "";
+      const values = datasets[period].signups;
+      if (values.length === 0) {
+        barChart.innerHTML = '<div class="empty-state">No signup data for this period.</div>';
+        totalSignupsEl.textContent = "";
+        return;
+      }
+
+      const maxValue = Math.max(...values.map((item) => item.value));
+      values.forEach(({ label, value }) => {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        const percentage = maxValue === 0 ? 0 : (value / maxValue) * 100;
+        bar.innerHTML = `
+          <span>${label}</span>
+          <div class="bar-track"><div class="bar-fill" style="width: ${percentage}%;"></div></div>
+          <span>${value}</span>
+        `;
+        barChart.append(bar);
+      });
+
+      const total = values.reduce((sum, { value }) => sum + value, 0);
+      totalSignupsEl.textContent = `${total.toLocaleString()} total`;
+    }
+
+    function renderActivities() {
+      activityFeed.innerHTML = "";
+      if (activities.length === 0) {
+        activityFeed.innerHTML = '<div class="empty-state">No recent activity yet.</div>';
+        return;
+      }
+      activities.forEach(({ title, time }) => {
+        const item = document.createElement("div");
+        item.className = "activity-item";
+        item.innerHTML = `
+          <strong>${title}</strong>
+          <span>${time}</span>
+        `;
+        activityFeed.append(item);
+      });
+    }
+
+    function addActivity(message) {
+      const timestamp = new Intl.DateTimeFormat(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+      }).format(new Date());
+      activities.unshift({ title: message, time: `Today at ${timestamp}` });
+      if (activities.length > 8) {
+        activities.pop();
+      }
+      renderActivities();
+    }
+
+    function renderTasks() {
+      taskTable.innerHTML = "";
+      if (tasks.length === 0) {
+        taskTable.innerHTML = `
+          <tr>
+            <td colspan="4">
+              <div class="empty-state">No tasks yet. Use the form above to add one.</div>
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tasks.forEach((task) => {
+        const row = document.createElement("tr");
+        row.dataset.taskId = task.id;
+        const statusClass = statusStyles[task.status] ?? "";
+
+        row.innerHTML = `
+          <td>${task.name}</td>
+          <td>${task.owner}</td>
+          <td>
+            <div class="status-control">
+              <span class="status ${statusClass}">${task.status}</span>
+              <select class="task-select" aria-label="Update status for ${task.name}">
+                ${Object.keys(statusStyles)
+                  .map(
+                    (statusOption) =>
+                      `<option value="${statusOption}" ${
+                        statusOption === task.status ? "selected" : ""
+                      }>${statusOption}</option>`
+                  )
+                  .join("")}
+              </select>
+            </div>
+          </td>
+          <td>
+            <button type="button" data-action="delete" style="background:none;border:0;color:#ef4444;font-size:1rem;cursor:pointer;">×</button>
+          </td>
+        `;
+
+        taskTable.append(row);
+      });
+    }
+
+    function setActivePeriod(target) {
+      periodButtons.forEach((button) => button.classList.toggle("active", button === target));
+      const period = target.dataset.period;
+      renderMetrics(period);
+      renderChart(period);
+      addActivity(`Switched to ${target.textContent} view`);
+    }
+
+    periodButtons.forEach((button) => {
+      button.addEventListener("click", () => setActivePeriod(button));
+    });
+
+    document.getElementById("add-task-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+      const name = formData.get("task").trim();
+      const owner = formData.get("owner").trim();
+      const status = formData.get("status");
+
+      if (!name || !owner) {
+        return;
+      }
+
+      const newTask = { id: createId(), name, owner, status };
+      tasks.push(newTask);
+      renderTasks();
+      addActivity(`Added task “${name}” for ${owner}`);
+      form.reset();
+    });
+
+    taskTable.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action='delete']");
+      if (button) {
+        const row = button.closest("tr");
+        const id = row.dataset.taskId;
+        const index = tasks.findIndex((task) => task.id === id);
+        if (index >= 0) {
+          const [removed] = tasks.splice(index, 1);
+          renderTasks();
+          addActivity(`Removed task “${removed.name}”`);
+        }
+        return;
+      }
+    });
+
+    taskTable.addEventListener("change", (event) => {
+      if (event.target instanceof HTMLSelectElement && event.target.classList.contains("task-select")) {
+        const row = event.target.closest("tr");
+        const id = row.dataset.taskId;
+        const task = tasks.find((item) => item.id === id);
+        if (task) {
+          const previousStatus = task.status;
+          task.status = event.target.value;
+          renderTasks();
+          if (previousStatus !== task.status) {
+            addActivity(`Marked “${task.name}” as ${task.status}`);
+          }
+        }
+      }
+    });
+
+    document.getElementById("clear-completed").addEventListener("click", () => {
+      const completed = tasks.filter((task) => task.status === "Completed");
+      if (completed.length === 0) {
+        return;
+      }
+      for (let i = tasks.length - 1; i >= 0; i -= 1) {
+        if (tasks[i].status === "Completed") {
+          tasks.splice(i, 1);
+        }
+      }
+      renderTasks();
+      addActivity(`Cleared ${completed.length} completed task${completed.length > 1 ? "s" : ""}`);
+    });
+
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    });
+    document.getElementById("current-date").textContent = formattedDate;
+
+    renderActivities();
+    renderTasks();
+    renderMetrics("week");
+    renderChart("week");
+  </script>
+</body>
+</html>
